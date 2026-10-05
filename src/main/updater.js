@@ -1,4 +1,4 @@
-const { app, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const { autoUpdater } = require('electron-updater');
 
 // Las actualizaciones se publican como GitHub Releases del repo AppPapeleriaFE
@@ -9,6 +9,7 @@ const CHECK_INTERVAL_MS = 4 * 60 * 60 * 1000; // cada 4 horas mientras la app es
 
 let getWindow = () => null;
 let lastStatus = { state: 'idle' };
+let installing = false;
 
 const publish = (status) => {
   lastStatus = { ...status, currentVersion: app.getVersion() };
@@ -26,6 +27,21 @@ const handleError = (error) => {
     return;
   }
   publish({ state: 'error', message });
+};
+
+// Instala la actualización descargada. El instalador se muestra (no es silencioso) para que el
+// usuario vea que se está actualizando y no vuelva a abrir la app a mitad del proceso: si la app
+// está abierta mientras se reemplazan sus archivos, el instalador falla con
+// "No se pudieron desinstalar los archivos antiguos". Al terminar, la app se vuelve a abrir sola.
+const installNow = () => {
+  if (installing || lastStatus.state !== 'downloaded') return false;
+  installing = true;
+  publish({ state: 'installing', version: lastStatus.version });
+
+  // Cerrar las ventanas primero libera los procesos de Chromium que bloquean archivos.
+  BrowserWindow.getAllWindows().forEach((win) => win.destroy());
+  setImmediate(() => autoUpdater.quitAndInstall(false, true));
+  return true;
 };
 
 const check = async () => {
@@ -46,7 +62,8 @@ const initUpdater = (windowGetter) => {
   getWindow = windowGetter;
 
   autoUpdater.autoDownload = true;
-  autoUpdater.autoInstallOnAppQuit = true;
+  // La instalación al cerrar se maneja abajo (before-quit) para que sea visible y reabra la app.
+  autoUpdater.autoInstallOnAppQuit = false;
   autoUpdater.logger = console;
 
   autoUpdater.on('checking-for-update', () => publish({ state: 'checking' }));
@@ -62,11 +79,13 @@ const initUpdater = (windowGetter) => {
 
   ipcMain.handle('updater:check', () => check());
   ipcMain.handle('updater:get-status', () => ({ ...lastStatus, currentVersion: app.getVersion() }));
-  ipcMain.handle('updater:install', () => {
-    if (lastStatus.state !== 'downloaded') return false;
-    // Cierra la app, instala en silencio y la vuelve a abrir.
-    setImmediate(() => autoUpdater.quitAndInstall(true, true));
-    return true;
+  ipcMain.handle('updater:install', () => installNow());
+
+  // Si el usuario cierra la app con una actualización ya descargada, se instala en ese momento.
+  app.on('before-quit', (event) => {
+    if (installing || lastStatus.state !== 'downloaded') return;
+    event.preventDefault();
+    installNow();
   });
 
   if (app.isPackaged) {

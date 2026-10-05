@@ -16,6 +16,7 @@
       case 'available': return `Descargando versión ${status.version}...`;
       case 'downloading': return `Descargando versión ${status.version || ''} (${status.percent || 0}%)...`;
       case 'downloaded': return `Versión ${status.version} lista para instalar.`;
+      case 'installing': return `Instalando versión ${status.version}...`;
       case 'unsupported': return status.message;
       case 'error': return 'No se pudo verificar actualizaciones.';
       default: return 'Sin verificar.';
@@ -44,7 +45,7 @@
     title.textContent = 'Nueva versión disponible';
 
     const text = document.createElement('span');
-    text.textContent = `La versión ${status.version} ya se descargó. Reinicia la aplicación para instalarla.`;
+    text.textContent = `La versión ${status.version} ya se descargó. Se instalará al reiniciar o al cerrar la aplicación (tarda unos segundos y la app se vuelve a abrir sola).`;
     text.style.cssText = 'color: #d1e4ff; line-height: 1.4;';
 
     const actions = document.createElement('div');
@@ -82,7 +83,7 @@
     }
 
     if (checkButton) {
-      checkButton.disabled = ['checking', 'available', 'downloading'].includes(status.state);
+      checkButton.disabled = ['checking', 'available', 'downloading', 'installing'].includes(status.state);
     }
 
     if (status.state === 'downloaded') {
