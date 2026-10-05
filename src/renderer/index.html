@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html class="light" lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Papeleria Industrial </title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src http: https:; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'"/>
+<script src="./js/session.js"></script>
+<script src="./js/auth-guard.js"></script>
+<script src="./vendor/tailwindcss.js"></script>
+<script src="./vendor/html2pdf.bundle.min.js"></script>
+<script src="./vendor/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="./js/tailwind.config.js"></script>
+<link rel="stylesheet" href="./styles.css"/>
+</head>
+<body class="bg-surface text-on-surface">
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand-block">
+            <div class="brand-mark"><span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">architecture</span></div>
+            <div>
+                <h1>PIH</h1>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <button class="nav-item" data-route="dashboard"><span class="material-symbols-outlined">dashboard</span><span>Panel</span></button>
+            <button class="nav-item" data-route="catalogo"><span class="material-symbols-outlined">menu_book</span><span>Catálogo</span></button>
+            <button class="nav-item" data-route="inventario"><span class="material-symbols-outlined">inventory_2</span><span>Inventario</span></button>
+            <button class="nav-item" data-route="pedidos"><span class="material-symbols-outlined">shopping_cart</span><span>Pedidos</span></button>
+            <button class="nav-item" data-route="clientes"><span class="material-symbols-outlined">group</span><span>Directorio</span></button>
+            <button class="nav-item" data-route="facturacion"><span class="material-symbols-outlined">receipt_long</span><span>Facturación</span></button>
+            <button class="nav-item" data-route="contabilidad"><span class="material-symbols-outlined">account_balance</span><span>Contabilidad</span></button>
+            <button class="nav-item" data-route="reportes"><span class="material-symbols-outlined">analytics</span><span>Reportes</span></button>
+        </nav>
+        <div class="sidebar-footer">
+            <button class="secondary-btn sidebar-primary-action" data-route="pedidos"><span class="material-symbols-outlined">add</span><span>Nuevo Pedido</span></button>
+            <button id="settings-button" class="utility-link" type="button"><span class="material-symbols-outlined">settings</span><span>Ajustes</span></button>
+            <button id="help-button" class="utility-link" type="button"><span class="material-symbols-outlined">help</span><span>Ayuda</span></button>
+            <a class="utility-link utility-link-danger" href="#" role="button" id="logoutBtn"><span class="material-symbols-outlined">logout</span><span>Cerrar Sesión</span></a>
+        </div>
+    </aside>
+    <main class="workspace">
+        <header class="topbar no-print">
+            <div>
+                <h2 id="shell-title">Panel de Control</h2>
+                <p id="shell-subtitle">Resumen ejecutivo de ventas, inventario y operaciones diarias.</p>
+            </div>
+        </header>
+        <section id="view-root" class="view-root"></section>
+    </main>
+    <div id="help-modal" class="modal" aria-hidden="true">
+        <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="help-modal-title">
+            <button id="help-close" class="modal-close" type="button" aria-label="Cerrar manual">×</button>
+            <h3 id="help-modal-title">Manual de Usuario</h3>
+            <div class="modal-body">
+                <p>El manual de usuario está disponible para descarga. Haz clic en el enlace a continuación para abrirlo.</p>
+                <a href="./manual.pdf" target="_blank" class="cta-button" style="display: inline-block; margin-top: 1rem;">Abrir Manual de Usuario (PDF)</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal" aria-hidden="true">
+        <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
+            <button id="settings-close" class="modal-close" type="button" aria-label="Cerrar ajustes">×</button>
+            <h3 id="settings-modal-title">Ajustes de la Aplicación</h3>
+            <div class="modal-body">
+                <div class="settings-scroll">
+                    <fieldset style="margin-bottom: 2rem;">
+                        <legend style="font-weight: 600; margin-bottom: 1rem; font-size: 1rem;">Configuración de Retención</legend>
+                        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                <label for="retention-slider" style="font-weight: 500; display: flex; justify-content: space-between; align-items: center;">
+                                    <span>Porcentaje de Retención:</span>
+                                    <span id="retention-display" style="background: #f5f5f5; padding: 0.5rem 1rem; border-radius: 4px; font-weight: 700; min-width: 60px; text-align: center;">0%</span>
+                                </label>
+                                <input type="range" id="retention-slider" min="0" max="15" value="0" step="0.5" style="width: 100%; height: 8px; border-radius: 4px; background: #ddd; outline: none; -webkit-appearance: none; appearance: none;" />
+                                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #666;">
+                                    <span>0%</span>
+                                    <span>Máximo 15%</span>
+                                </div>
+                            </div>
+                            <p style="font-size: 0.9rem; color: #666; margin: 0; line-height: 1.5;">Este porcentaje será aplicado automáticamente al crear facturas y pedidos. Se descuenta del monto total facturado.</p>
+                        </div>
+                    </fieldset>
+
+                    <fieldset style="margin-bottom: 2rem;">
+                        <legend style="font-weight: 600; margin-bottom: 1rem; font-size: 1rem;">Configuración de IVA</legend>
+                        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                <label for="iva-input" style="font-weight: 500; display: flex; justify-content: space-between; align-items: center;">
+                                    <span>Tasa de IVA:</span>
+                                    <span id="iva-display" style="background: #f5f5f5; padding: 0.5rem 1rem; border-radius: 4px; font-weight: 700; min-width: 60px; text-align: center;">0%</span>
+                                </label>
+                                <input type="number" id="iva-input" min="0" max="20" value="0" step="1" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;" placeholder="Ingresa el porcentaje (ej: 19)" />
+                                <p style="font-size: 0.9rem; color: #666; margin: 0; line-height: 1.5;">Ingresa el valor numérico del IVA (ej: 19 para 19%). Se aplicará automáticamente al crear facturas.</p>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend style="font-weight: 600; margin-bottom: 1rem; font-size: 1rem;">Información de la Aplicación</legend>
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.9rem;">
+                            <p><strong>Versión:</strong> <span id="app-version">-</span></p>
+                            <p><strong>Servidor API:</strong> <span id="api-url" style="word-break: break-all;">-</span></p>
+                            <p><strong>Estado Base de Datos:</strong> <span id="db-status" style="color: #666;">Verificando...</span></p>
+                        </div>
+                    </fieldset>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 2rem; justify-content: flex-end;">
+                    <button id="open-discount-manager" type="button" class="secondary-btn">Crear descuentos</button>
+                    <button id="settings-cancel" type="button" class="secondary-btn">Cancelar</button>
+                    <button id="settings-save" type="button" class="cta-button">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="discount-modal" class="modal" aria-hidden="true">
+        <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="discount-modal-title">
+            <button id="discount-close" class="modal-close" type="button" aria-label="Cerrar descuentos">×</button>
+            <h3 id="discount-modal-title">Crear descuentos</h3>
+            <div class="modal-body">
+                <div class="field-group">
+                    <label for="discount-name">Nombre del descuento</label>
+                    <input id="discount-name" class="field-input" type="text" placeholder="Ej: Cliente VIP" />
+                </div>
+                <div class="field-group">
+                    <label for="discount-rate">Valor porcentual (%)</label>
+                    <input id="discount-rate" class="field-input" type="number" min="0" max="100" step="0.01" placeholder="Ej: 10" />
+                </div>
+                <div class="field-group">
+                    <label>Descuentos creados</label>
+                    <div id="discount-list" style="display:grid; gap:0.6rem;"></div>
+                </div>
+                <div style="display:flex; gap:1rem; justify-content:flex-end; margin-top:1rem;">
+                    <button id="discount-save" type="button" class="cta-button">Guardar descuento</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="./js/utils.js"></script>
+<script src="./js/api.js"></script>
+<script src="./js/catalogo.js"></script>
+<script src="./js/dashboard.js"></script>
+<script src="./js/inventario.js"></script>
+<script src="./js/pedidos.js"></script>
+<script src="./js/clientes.js"></script>
+<script src="./js/facturacion.js"></script>
+<script src="./js/contabilidad.js"></script>
+<script src="./js/reportes.js"></script>
+<script src="./js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+{
+  "name": "apppapeleria-fe",
+  "version": "1.1.0",
+  "description": "Aplicacion de escritorio de AppPapeleria (Electron). Consume la API de AppPapeleriaBE.",
+  "main": "src/main/main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win nsis"
+  },
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "^41.5.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.bs.solutions.apppapeleria",
+    "productName": "AppPapeleria",
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "asar": true,
+    "win": {
+      "signAndEditExecutable": false,
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "AppPapeleria"
+    }
+  }
+}
