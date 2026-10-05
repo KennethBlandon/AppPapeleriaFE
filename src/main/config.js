@@ -18,7 +18,10 @@ const isHttpUrl = (value) => {
 // La app de escritorio solo necesita saber dónde está la API.
 // No contiene credenciales de base de datos: esas viven únicamente en el servidor (AppPapeleriaBE).
 const candidateConfigFiles = () => [
+  // %APPDATA%\AppPapeleria\config.json (carpeta de datos de la app)
   path.join(app.getPath('userData'), 'config.json'),
+  // Carpeta de las versiones 1.1.x/1.2.0, que usaban el nombre interno del paquete
+  path.join(app.getPath('appData'), 'apppapeleria-fe', 'config.json'),
   path.join(path.dirname(process.execPath), 'config.json'),
   path.join(__dirname, '..', '..', 'config.json'),
 ];

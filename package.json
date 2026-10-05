@@ -1,6 +1,7 @@
 {
   "name": "apppapeleria-fe",
-  "version": "1.1.0",
+  "productName": "AppPapeleria",
+  "version": "1.2.1",
   "description": "Aplicacion de escritorio de AppPapeleria (Electron). Consume la API de AppPapeleriaBE.",
   "main": "src/main/main.js",
   "private": true,

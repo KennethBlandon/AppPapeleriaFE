@@ -25,9 +25,10 @@ Por defecto se conecta a `http://localhost:3000`. Para apuntar a otra API:
 
 Se busca `config.json`, en este orden, en:
 
-1. `%APPDATA%\AppPapeleria\config.json` (en desarrollo: `%APPDATA%\apppapeleria-fe\config.json`)
-2. La carpeta del `.exe` instalado
-3. La raíz de este proyecto
+1. `%APPDATA%\AppPapeleria\config.json`
+2. `%APPDATA%\apppapeleria-fe\config.json` (carpeta que usaban las versiones 1.1.0 y 1.2.0 por error; se mantiene por compatibilidad)
+3. La carpeta del `.exe` instalado
+4. La raíz de este proyecto
 
 La URL activa se ve en la pantalla de login y en *Ajustes → Información de la Aplicación*.
 
