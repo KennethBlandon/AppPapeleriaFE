@@ -2,6 +2,7 @@ const path = require('path');
 const { pathToFileURL, fileURLToPath } = require('url');
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const { loadConfig } = require('./config');
+const { initUpdater } = require('./updater');
 
 const RENDERER_DIR = path.join(__dirname, '..', 'renderer');
 const RENDERER_URL_PREFIX = pathToFileURL(RENDERER_DIR + path.sep).href;
@@ -95,6 +96,7 @@ app.whenReady().then(() => {
   appConfig = loadConfig();
   console.log(`[ELECTRON] API: ${appConfig.apiBaseUrl}`);
   createWindow();
+  initUpdater(() => mainWindow);
 });
 
 app.on('second-instance', () => {
